@@ -21,7 +21,7 @@ cursor = conn.cursor()
 
 
 def db_table_val(user_id: int , user_age: int,  user_height: int, user_sex: str, user_weight: float, date:str, user_aim:str, imt:float, imt_str:str, cal:float):
-  cursor.execute('INSERT INTO users (user_id, user_height, user_age, user_sex, user_weight, date, user_aim, imt, imt_str, cal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (user_id, user_height, user_age, user_sex, user_weight, date, user_aim, imt, imt_str, cal))
+  cursor.execute('INSERT INTO users (user_id, user_age, user_height,  user_sex, user_weight, date, user_aim, imt, imt_str, cal) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', (user_id,  user_age, user_height,user_sex, user_weight, date, user_aim, imt, imt_str, cal))
   conn.commit()
 
 def wat_co(count: int,user_id: int , date:str):
@@ -143,8 +143,11 @@ def aim_work(message):
   btn3 = 'Сводка'
   btn4 = 'Помочь с рецептом'
   btn5 = 'Добавить выпитый стаканчик воды'
+  btn6 = 'Присоедениться к сообществу '
   alfamarkup.add(btn1, btn2, btn3)
-  alfamarkup.row(btn4, btn5)
+  alfamarkup.row(btn4)
+  alfamarkup.row(btn5)
+  alfamarkup.row(btn6)
   mes = bot.send_message(message.chat.id,
                    text='Выданные планы питания и тренировок являются лишь рекоменданиями, которые ты можешь выполнять по желанию. Теперь ты можешь вводить продукты, которые ты сегодня употребил и тренировки, которые ты сегодня прошёл, а в конце дня ты будешь получать отчёт по твоим Б/Ж/У за день и затраченным калориям',
                    reply_markup=alfamarkup)
@@ -456,10 +459,10 @@ def registr(message):
 
 def log_in(message):
   global height, age, sex, weight, aim, imt, imt_using_words, cal
-  cursor.execute("SELECT user_height, user_age, user_sex, user_weight, user_aim, imt, imt_str, cal FROM users WHERE user_id = ? AND date = ?",
+  cursor.execute("SELECT user_age, user_height,  user_sex, user_weight, user_aim, imt, imt_str, cal FROM users WHERE user_id = ? AND date = ?",
                  (message.from_user.id, datetime.datetime.now().strftime('%Y-%m-%d') ))
   if cursor.fetchone():
-    height, age, sex, weight, aim, imt, imt_using_words, cal = cursor.fetchone()
+    age, height,  sex, weight, aim, imt, imt_using_words, cal = cursor.fetchone()
     aim_work(message)
   else:
     registr(message)
@@ -508,30 +511,8 @@ def account(message):
   if message.text == 'Добавить выпитый стаканчик воды':
     wat_co(user_id=message.from_user.id, count = 1, date = datetime.datetime.now().strftime('%Y-%m-%d'))
     bot.send_message(message.chat.id, text = 'Стакан добавлен)',reply_markup=alfamarkup)
-
+  if message.text == 'Присоедениться к сообществу':
+    bot.send_message(message.chat.id, text = 'https://t.me/+QVhMA2topDgzOWVi')
 
 bot.polling(none_stop=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
