@@ -152,7 +152,7 @@ async def wei(message:Message, state: FSMContext):
     await state.clear()
 @dp.message(REG.ais)
 async def ai(message: Message, state: FSMContext):
-    await state.update_data(ais=message.text)
+    await state.update_data(ais='1')
 
     cursor.execute(
         "SELECT user_aim, cal ,user_sex, user_age, imt, user_weight, user_height FROM users WHERE date = ? AND user_id = ?",
