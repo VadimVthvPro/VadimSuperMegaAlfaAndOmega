@@ -151,6 +151,7 @@ async def wei(message:Message, state: FSMContext):
     await state.update_data(weight=message.text)
     data = await state.get_data()
     height, sex, age, weight, aim = data['height'], data['sex'], data['age'], data['weight'], data['want']
+    await state.set_state(REG.ais)
     if "," in weight:
         we1 = message.text.split(",")
         weight = int(we1[0]) + int(we1[1]) / 10 ** len(we1[1])
@@ -182,33 +183,31 @@ async def wei(message:Message, state: FSMContext):
     await bot.send_message(message.chat.id,
                      text='{}, твой вес: {}, твой рост: {}, твой индекс массы тела:{}, и твой вес - это {}. '.format(
                          message.from_user.first_name, weight, height, imt, imt_using_words))
-    await state.clear()
+
+
+
 
 
 
 
 async def generate_nutrition_plan(message, bot):
     try:
-
         cursor.execute(
             "SELECT user_aim, cal ,user_sex, user_age, imt, user_weight, user_height FROM users WHERE date = ? AND user_id = ?",
             (datetime.datetime.now().strftime('%Y-%m-%d'), message.from_user.id))
         aim, cal, sex, age, imt, weight, height = cursor.fetchone()
-        if aim and cal and sex and age and imt and weight and height:
-            # Запуск задач параллельно
-            async with GigaChat(credentials=credentials_base64, verify_ssl_certs=False) as giga:
-                loop = asyncio.get_event_loop()
-                plan_pit = await loop.run_in_executor(None, giga.chat, f"Придумай план питания для {sex}, {height} см, {age} лет, цель: {aim}")
-                plan_train = await loop.run_in_executor(None, giga.chat, f"Придумай план тренировок для {sex}, {height} см, {age} лет, цель: {aim}")
+        async with GigaChat(credentials=credentials_base64, verify_ssl_certs=False) as giga:
+            loop = asyncio.get_event_loop()
+            plan_pit = await loop.run_in_executor(None, giga.chat, f"Придумай план питания для {sex}, {height} см, {age} лет, цель: {aim}")
+            plan_train = await loop.run_in_executor(None, giga.chat, f"Придумай план тренировок для {sex}, {height} см, {age} лет, цель: {aim}")
+            return plan_pit.choices[0].message.content, plan_train.choices[0].message.content
 
-                return plan_pit.choices[0].message.content, plan_train.choices[0].message.content
-        else:
-            return "Не удалось получить данные пользователя."
     except Exception as e:
         return f"Ошибка при генерации плана: {e}"
 
 @dp.message(REG.ais)
 async def ai(message: Message, state: FSMContext):
+    await state.clear()
     try:
         plan_pit, plan_train = await generate_nutrition_plan(message, bot)
         if plan_pit and plan_train:
